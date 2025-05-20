@@ -62,7 +62,7 @@ func addNote() {
 	saveNotes()
 	log.WithFields(log.Fields{
 		"title": title,
-	}).Info("Note added")
+	}).Info("Note added") //to check that the node is added with key value pair
 }
 
 func saveNotes() {
@@ -105,7 +105,7 @@ func deleteNote() {
 			saveNotes()
 			log.WithFields(log.Fields{
 				"title": title,
-			}).Info("Note deleted")
+			}).Info("Note deleted") //for checking the title again
 			fmt.Println("Note deleted successfully")
 			return
 		}
