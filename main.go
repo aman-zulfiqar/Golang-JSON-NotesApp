@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -23,6 +24,7 @@ const dataFile = "notes.json"
 func init() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
+		DisableColors: false,
 	})
 	loadNotes()
 }
@@ -32,7 +34,7 @@ func loadNotes() {
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Info("No existing notes file, starting fresh")
-			notes = []Note{} //make the struct empty
+			notes = []Note{}
 		}
 		log.WithError(err).Error("Failed to read notes file")
 		return
@@ -47,12 +49,14 @@ func loadNotes() {
 }
 
 func addNote() {
-	var title, content string
+	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Print("Enter note title: ")
-	fmt.Scanln(&title)
+	title, _ := reader.ReadString('\n')
+	title = strings.TrimSpace(title)
 	fmt.Print("Enter note content: ")
-	fmt.Scanln(&content)
+	content, _ := reader.ReadString('\n')
+	content = strings.TrimSpace(content)
 
 	notes = append(notes, Note{
 		Title:     title,
@@ -62,7 +66,7 @@ func addNote() {
 	saveNotes()
 	log.WithFields(log.Fields{
 		"title": title,
-	}).Info("Note added") //to check that the node is added with key value pair
+	}).Info("Note added")
 }
 
 func saveNotes() {
@@ -71,7 +75,6 @@ func saveNotes() {
 		log.WithError(err).Error("Failed to marshal notes")
 		return
 	}
-
 	err = os.WriteFile(dataFile, data, 0644)
 	if err != nil {
 		log.WithError(err).Error("Failed to save notes")
@@ -81,11 +84,14 @@ func saveNotes() {
 }
 
 func listNotes() {
+	if notes == nil {
+		log.Error("Notes data is not loaded. Please load notes before listing.")
+		return
+	}
 	if len(notes) == 0 {
 		fmt.Println("No notes available")
 		return
 	}
-
 	for i, note := range notes {
 		fmt.Printf("\nNote #%d\n", i+1)
 		fmt.Printf("Title: %s\n", note.Title)
@@ -95,9 +101,10 @@ func listNotes() {
 }
 
 func deleteNote() {
-	var title string
+	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter title of note to delete: ")
-	fmt.Scanln(&title)
+	title, _ := reader.ReadString('\n')
+	title = strings.TrimSpace(title)
 
 	for i, note := range notes {
 		if strings.EqualFold(note.Title, title) {
@@ -105,7 +112,7 @@ func deleteNote() {
 			saveNotes()
 			log.WithFields(log.Fields{
 				"title": title,
-			}).Info("Note deleted") //for checking the title again
+			}).Info("Note deleted")
 			fmt.Println("Note deleted successfully")
 			return
 		}
